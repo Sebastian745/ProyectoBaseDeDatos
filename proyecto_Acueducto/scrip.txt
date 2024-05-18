@@ -287,6 +287,20 @@ END //
 
 DELIMITER ;
 
+DELIMITER //
+CREATE PROCEDURE Consulta6(
+    IN p_fecha DATE
+)
+BEGIN
+SELECT fecha, B.nombre_barrio
+	From fechas F
+    INNER JOIN Zonas Z on F.id_zona = Z.id_zona
+    INNER JOIN Barrios B on Z.id_zona = B.id_zona
+    Where fecha= p_fecha;
+   END //
+   
+   DELIMITER ;
+
 
 CALL InsertarNuevoBarrio('Cortijo', 'Engativa', 2);
 CALL InsertarNuevoBarrio('Bachue', 'Engativa', 2);
