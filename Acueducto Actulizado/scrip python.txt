@@ -1,0 +1,232 @@
+# pip install mysql-connector-phyton
+import mysql.connector
+from mysql.connector import errorcode
+
+class CConexion:
+    def __init__(self):
+        self.conexion = None
+    
+    def conexiondedatos(self):
+        try:
+            self.conexion = mysql.connector.connect(
+                user='root',
+                password='1234',
+                host='127.0.0.1',
+                database='acuedcuto2',
+                port='3306',
+                auth_plugin='mysql_native_password')
+            print("Conexión correcta")
+            return self.conexion
+        except mysql.connector.Error as error:
+            print(f"Error al conectarte a la base de datos: {error}")
+            return None
+        
+    def insertar_nuevo_barrio(self, nombre_barrio, nombre_localidad, id_zona):
+        
+            cursor = self.conexion.cursor()
+
+            cursor.callproc("InsertarNuevoBarrio", [nombre_barrio, nombre_localidad, id_zona])
+
+            for result in cursor.stored_results():
+                mensaje = result.fetchone()[0]
+                print(mensaje)
+            self.conexion.commit()
+            
+
+    def agregar_fecha(self, fecha, id_zona):
+        
+            cursor = self.conexion.cursor()
+
+            cursor.callproc("AgregarFecha", (fecha, id_zona))
+
+            for result in cursor.stored_results():
+                mensaje = result.fetchone()[0]
+                print(mensaje)
+            self.conexion.commit()
+            
+
+    def eliminar_fecha(self, fecha):
+        
+            cursor = self.conexion.cursor()
+
+            # Llamar al procedimiento almacenado EliminarFecha
+            cursor.callproc("EliminarFecha", [fecha])
+
+            # Confirmar la transacción
+            self.conexion.commit()
+            print("Fecha eliminada correctamente.")   
+
+    def consulta2(self):
+        
+            cursor = self.conexion.cursor()
+            cursor.callproc("Consulta2")
+
+            for result in cursor.stored_results():
+                for row in result.fetchall():
+                    print(row)   
+
+    def consulta3(self, nombre_barrio):
+    
+        cursor = self.conexion.cursor()
+
+        cursor.callproc("Consulta3", [nombre_barrio])
+
+        for result in cursor.stored_results():
+            for row in result.fetchall():
+                print(row)  
+    def consulta4(self, id_zona):
+    
+        cursor = self.conexion.cursor()
+
+        cursor.callproc("Consulta4", [id_zona])
+
+        for result in cursor.stored_results():
+            for row in result.fetchall():
+                print(row)  
+
+    def consulta5(self):
+    
+        cursor = self.conexion.cursor()
+
+        
+        cursor.callproc("Consulta5")
+        for result in cursor.stored_results():
+            for row in result.fetchall():
+                print(row)  
+
+    def consulta6(self, fecha):
+    
+        cursor = self.conexion.cursor()
+
+        
+        cursor.callproc("Consulta6", [fecha])
+        for result in cursor.stored_results():
+            for row in result.fetchall():
+                print(row)                                                         
+
+
+conexion = CConexion()
+conexion.conexiondedatos()
+
+#nombre_barrio = input("Ingrese el nombre del nuevo barrio: ")
+#nombre_localidad = input("Ingrese el nombre de la localidad del nuevo barrio: ")
+#id_zona = int(input("Ingrese el ID de la zona del nuevo barrio: "))
+#conexion.insertar_nuevo_barrio(nombre_barrio, nombre_localidad, id_zona)
+
+
+
+#fecha = input("Ingrese la nueva fecha (YYYY-MM-DD): ")
+#id_zona = int(input("Ingrese el ID de la zona: "))
+#conexion.agregar_fecha(fecha,id_zona)
+
+#fecha_a_eliminar = input("Ingrese la fecha que desea eliminar (YYYY-MM-DD): ")
+#conexion.eliminar_fecha(fecha_a_eliminar)
+
+#conexion.consulta2()
+
+#nombre_del_barrio=(input("Ingrese el barrio que desea consultar: "))
+#conexion.consulta3(nombre_del_barrio)
+
+#id_zona2= int(input("Ingrese el ID de la zona: "))
+#conexion.consulta4(id_zona2)
+
+
+
+#conexion.consulta5()
+
+#fecha_deseada=input("Ingrese la fecha que desea consultar (YYYY-MM-DD): ")
+#conexion.consulta6(fecha_deseada)
+
+
+def menu():
+    print("Bienvenido al EAAB")
+    print("¿Cómo le gustaría ingresar?")
+    print("1. Administrador")
+    print("2. Usuario")
+    print("0. Salir")
+    opcion = input("Ingrese el número de la opción que desea: ")
+    return opcion
+
+
+def main():
+    while True:
+        opcion = menu()
+
+        if opcion == "1":
+
+            while True:
+                print("Ha seleccionado ingresar como Administrador\n¿Qué acción desea realizar?")
+                print("1. Eliminar fechas")
+                print("2. Agregarfechas")
+                print("3. Agregar barrios")
+                print("0. Volver al menú principal")
+                opcion_administrador = input("Ingrese el número de la opción que desea: ")
+
+                if opcion_administrador == "1":
+                    print("Ha seleccionado eliminar fechas.")
+                    fecha_a_eliminar = input("Ingrese la fecha que desea eliminar (YYYY-MM-DD): ")
+                    conexion.eliminar_fecha(fecha_a_eliminar)
+
+                elif opcion_administrador == "2":
+                    print("Ha seleccionado agregar fecha.")
+                    fecha = input("Ingrese la nueva fecha (YYYY-MM-DD): ")
+                    id_zona = int(input("Ingrese el ID de la zona: "))
+                    conexion.agregar_fecha(fecha,id_zona)    
+
+                   
+                elif opcion_administrador == "3":
+                     print("Ha seleccionado agregar barrio.")  
+                     nombre_barrio = input("Ingrese el nombre del nuevo barrio: ")
+                     nombre_localidad = input("Ingrese el nombre de la localidad del nuevo barrio: ")
+                     id_zona = int(input("Ingrese el ID de la zona del nuevo barrio: "))
+                     conexion.insertar_nuevo_barrio(nombre_barrio, nombre_localidad, id_zona)
+
+                elif opcion_administrador == "0":
+                    break  
+                else:
+                    print("Opción inválida. Por favor, ingrese un número válido.")
+
+        elif opcion == "2":
+            while True:
+
+                print("Ha seleccionado ingresar como Usuario\n¿Qué acción desea realizar?")
+                print("1. Imprimir tabla con las zonas y los barrios asociados\n")
+                print("2. Ver fechas de corte y zona de su barrio\n")
+                print("3. Ver fechas de corte de una zona\n")
+                print("4. Ver tabla de barrios registrados y la cantidad de barrios de las zonas\n")
+                print("5. Ver que barrios tienen corte segun la fecha\n")
+                print("0. Volver al menú principal\n")
+            # Aquí puedes agregar la lógica para el ingreso como Usuario
+                opcion_usuario = input("Ingrese el número de la opción que desea: ")
+                
+                if opcion_usuario == "1":
+                   conexion.consulta2()
+
+                elif opcion_usuario == "2":
+                     nombre_del_barrio=(input("Ingrese el barrio que desea consultar: "))
+                     conexion.consulta3(nombre_del_barrio) 
+
+                elif opcion_usuario == "3":      
+                     id_zona2= int(input("Ingrese el ID de la zona: "))
+                     conexion.consulta4(id_zona2)
+
+                elif opcion_usuario == "4":             
+                     conexion.consulta5()
+
+                elif opcion_usuario == "5":        
+                    fecha_deseada=input("Ingrese la fecha que desea consultar (YYYY-MM-DD): ")
+                    conexion.consulta6(fecha_deseada)
+
+                elif opcion_usuario == "0":
+                    break  
+                else:
+                    print("Opción inválida. Por favor, ingrese un número válido.") 
+
+        elif opcion == "0":
+            print("Saliendo del programa. ¡Hasta luego!")
+            break  # Salimos del bucle while
+        else:
+            print("Opción inválida. Por favor, ingrese un número válido.")
+
+main()
+

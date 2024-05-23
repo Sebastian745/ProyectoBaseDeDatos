@@ -1,0 +1,316 @@
+Create database Acueducto2;
+
+USE Acueducto2;
+
+CREATE TABLE Zonas (
+    id_zona INT  PRIMARY KEY,
+    nombre_zona VARCHAR(50)
+);
+
+CREATE TABLE Localidades (
+    id_localidad INT  PRIMARY KEY,
+    nombre_localidad VARCHAR(50) UNIQUE
+);
+CREATE TABLE Barrios (
+    id_barrio INT AUTO_INCREMENT PRIMARY KEY,
+    nombre_barrio VARCHAR(50),
+    nombre_localidad VARCHAR(50),
+    id_zona INT,
+    FOREIGN KEY (nombre_localidad) REFERENCES Localidades(nombre_localidad),
+    FOREIGN KEY (id_zona) REFERENCES Zonas(id_zona)
+);
+
+
+CREATE TABLE Zonas_Localidades (
+    id_zona INT,
+    id_localidad INT,
+    PRIMARY KEY (id_zona, id_localidad),
+    FOREIGN KEY (id_zona) REFERENCES Zonas(id_zona),
+    FOREIGN KEY (id_localidad) REFERENCES Localidades(id_localidad)
+);
+CREATE TABLE Fechas (
+    id_fecha INT AUTO_INCREMENT PRIMARY KEY,
+    fecha DATE UNIQUE NOT NULL,
+    id_zona INT,
+    FOREIGN KEY (id_zona) REFERENCES Zonas(id_zona) ON DELETE CASCADE
+);
+INSERT INTO Zonas (id_zona, nombre_zona) VALUES
+(1, 'Zona1');
+INSERT INTO Zonas (id_zona, nombre_zona) VALUES
+(2,'Zona2'),
+(3, 'Zona3'),
+(4, 'zona4'),
+(5, 'zona5'),
+(6, 'zona6'),
+(7, 'zona7'),
+(8, 'zona8'),
+(9, 'zona9');
+
+INSERT INTO Localidades (id_localidad, nombre_localidad) VALUES
+(1, 'Antonio Nariño'),
+
+(2, 'Barrios Unidos'),
+
+(3, 'Bosa'),
+
+(4, 'Chapinero'),
+
+(5, 'Ciudad Bolivar'),
+
+(6, 'Engativa'),
+
+(7, 'Fontibon'),
+
+(8, 'Kennedy'),
+
+(9, 'La Candelaria'),
+
+(10, 'Los Martires'),
+
+(11, 'Puente Aranda'),
+
+(12, 'Rafael Uribe'),
+
+(13, 'San Cristobal'),
+
+(14, 'Santa Fe'),
+
+(15, 'Suba'),
+
+(16, 'Sumapaz'),
+
+(17, 'Teusaquillo'),
+
+(18, 'Tunjuelito'),
+
+(19, 'Usaquen'),
+
+(20, 'Usme');
+
+INSERT INTO Zonas_Localidades (id_zona, id_localidad) VALUES
+(1, 1),
+(1, 2), 
+(1, 4), 
+(1, 10), 
+(1, 11), 
+(1, 12), 
+(1, 14),
+(1, 17),
+(1, 18),
+(1,19);
+INSERT INTO Zonas_Localidades (id_zona, id_localidad) VALUES
+(2,6),
+(2,7),
+(3, 2),
+(3, 15),
+(3, 19),
+(4, 3),
+(4, 5),
+(4, 8),
+(4, 11),
+(4, 18),
+(5, 5),
+(5, 12),
+(5, 13),
+(5, 14),
+(5, 18),
+(6, 15),
+(8, 1),
+(8, 3),
+(8, 4),
+(8, 8),
+(8, 10),
+(8, 12),
+(8, 13),
+(8, 14),
+(8, 19),
+(9, 19),
+(9, 15);
+
+DELIMITER //
+
+CREATE PROCEDURE InsertarNuevoBarrio (                   
+    IN p_nombre_barrio VARCHAR(50),
+    IN p_nombre_localidad VARCHAR(50),
+    IN p_id_zona INT
+)              
+BEGIN
+    DECLARE localidad_id INT;
+    DECLARE zona_valida INT;
+
+    
+    SELECT id_localidad INTO localidad_id
+    FROM Localidades
+    WHERE nombre_localidad = p_nombre_localidad;
+
+  
+    SELECT COUNT(*) INTO zona_valida
+    FROM Zonas_Localidades
+    WHERE id_zona = p_id_zona AND id_localidad = localidad_id;
+
+    
+    IF zona_valida = 0 THEN
+        SELECT 'Error: La zona no está asociada a la localidad especificada.' AS mensaje;
+    ELSE
+        
+        INSERT INTO Barrios (nombre_barrio, nombre_localidad, id_zona)
+        VALUES (p_nombre_barrio, p_nombre_localidad, p_id_zona);
+
+        SELECT 'Nuevo barrio creado exitosamente.' AS mensaje;
+    END IF;
+END //
+ /* Crea un nuevo barrio por medio de su nombre y debemos asiganrle una localidad y una zona donde este la localidad,
+ no es necesario definir su id ya que eso lo hace por medio de AUTO_INCREMENT */
+DELIMITER ;
+
+
+DELIMITER //
+
+CREATE PROCEDURE AgregarFecha (
+    IN p_fecha DATE,
+    IN p_id_zona INT
+)
+BEGIN
+    DECLARE fecha_existente INT;
+
+   
+    SELECT COUNT(*) INTO fecha_existente
+    FROM Fechas
+    WHERE fecha = p_fecha;
+
+    
+    IF fecha_existente > 0 THEN
+        SELECT 'Error: La fecha ya está asociada a una zona.' AS mensaje;
+    ELSE
+        
+        INSERT INTO Fechas (fecha, id_zona)
+        VALUES (p_fecha, p_id_zona);
+
+        SELECT 'Nueva fecha creada exitosamente.' AS mensaje;
+    END IF;
+ /* Agraga una nueva fecha ingresando la fecha y la zona donde se quiere asociar esa fecha*/
+END //
+
+DELIMITER ;
+
+
+DELIMITER //
+
+CREATE PROCEDURE EliminarFecha (
+    IN p_fecha DATE
+)
+BEGIN
+    
+    DELETE FROM Fechas
+    WHERE fecha = p_fecha;
+
+   
+    SELECT 'Fecha eliminada exitosamente.' AS mensaje;
+/* Elimina una fecha ingresando nada mas la fecha que se quiere elimininar*/
+END //
+
+DELIMITER ;
+
+
+DELIMITER //
+
+CREATE PROCEDURE Consulta1()
+BEGIN
+    SELECT DISTINCT Z.nombre_zona, L.nombre_localidad
+    FROM Localidades L
+    INNER JOIN Zonas_Localidades ZL ON L.id_localidad = ZL.id_localidad
+    INNER JOIN Zonas Z ON Z.id_zona = ZL.id_zona;
+/* Imprime una tabla con las zonas y las localidades asociadas a esa zona */
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE Consulta2()
+BEGIN
+    SELECT DISTINCT Z.nombre_zona, B.nombre_barrio
+    FROM Barrios B
+    INNER JOIN Zonas Z ON B.id_zona = Z.id_zona;
+/* Similar a consulta 1 esta vez imprime una tabla con las zonas y los barrios asociados a esa zona */
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE Consulta3(
+    IN p_nombre_barrio VARCHAR(50)
+)
+BEGIN
+    SELECT B.nombre_barrio, Z.nombre_zona, F.fecha
+    FROM Barrios B
+    INNER JOIN Zonas Z ON B.id_zona = Z.id_zona
+    INNER JOIN Fechas F ON Z.id_zona = F.id_zona
+    WHERE B.nombre_barrio = p_nombre_barrio;
+/* Por medio del nombre del barrio se imprime la zona a la que pertence y las fechas de corte asociadas a esa zona*/
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE Consulta4(
+    IN p_id_zona INT
+)
+BEGIN
+    SELECT Z.nombre_zona, F.fecha
+    FROM Zonas Z
+    INNER JOIN Fechas F ON Z.id_zona = F.id_zona
+    WHERE Z.id_zona = p_id_zona;
+/* Consulta 4 se encarga de imprimir las fechas de corte asociadas al id de zona ingresado por el usuario*/
+END //
+
+DELIMITER ;
+
+DELIMITER //
+
+CREATE PROCEDURE Consulta5()
+BEGIN
+    SELECT 
+        (SELECT COUNT(*) FROM Barrios) AS total_barrios,
+        Z.nombre_zona,
+        COUNT(B.id_barrio) AS numero_barrios
+    FROM 
+        Zonas Z
+    LEFT JOIN 
+        Barrios B ON Z.id_zona = B.id_zona
+    GROUP BY 
+        Z.id_zona;
+/* consulta 5 me imprime la cantidad de barrios registrados y la cantidad de barrios que tiene cada zona*/
+END //
+
+DELIMITER ;
+
+DELIMITER //
+CREATE PROCEDURE Consulta6(
+    IN p_fecha DATE
+)
+BEGIN
+SELECT fecha, B.nombre_barrio
+	From fechas F
+    INNER JOIN Zonas Z on F.id_zona = Z.id_zona
+    INNER JOIN Barrios B on Z.id_zona = B.id_zona
+    Where fecha= p_fecha;
+   END //
+   
+   DELIMITER ;
+
+/* consulta 6 permite ver los barrios que tienen corte en la fecha ingresada*/
+
+CALL InsertarNuevoBarrio('Cortijo', 'Engativa', 2);
+CALL InsertarNuevoBarrio('Bachue', 'Engativa', 2);
+CALL InsertarNuevoBarrio('bochica', 'Engativa', 2);
+CALL InsertarNuevoBarrio('Britalia', 'Suba', 6);
+CALL InsertarNuevoBarrio('Niza', 'Suba', 6);
+
+CALL AgregarFecha ('2024-05-20',2);
+CALL AgregarFecha ('2024-05-23',6);
+
+
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY '1234';
